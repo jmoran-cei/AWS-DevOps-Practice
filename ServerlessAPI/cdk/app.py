@@ -17,6 +17,16 @@ class ItemsApiStack(core.Stack):
             removal_policy=core.RemovalPolicy.RETAIN,  # Keep table data independently from stack
         )
 
+        # IAM Role for Lambda
+        lambda_role = iam.Role(
+            self, 
+            "LambdaExecutionRole",
+            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com")
+        )
+
+        # Granting permissions to Lambda Role
+        table.grant_read_data(lambda_role)
+
         # Lambdas
         get_function = _lambda.Function( 
             self,
@@ -25,6 +35,7 @@ class ItemsApiStack(core.Stack):
             handler="index.handler",
             code=_lambda.Code.from_asset("../get-item/src"), 
             environment={"TABLE_NAME": table.table_name},
+            role=lambda_role,
         )
 
         # **** Starting with one lambda for simplicity, then will add the others. Also want to get practice re-initiating an update of a stack
