@@ -15,7 +15,8 @@ class ItemsApiStack(Stack):
         # DynamoDB Table
         table = dynamodb.Table(
             self,
-            "SampleItems",
+            "SampleItemsDDBResource",
+            table_name="SampleItemsTable",
             partition_key=dynamodb.Attribute(
                 name="itemId", type=dynamodb.AttributeType.STRING
             ),
@@ -36,6 +37,7 @@ class ItemsApiStack(Stack):
         get_function = _lambda.Function( 
             self,
             "GetSampleItemFunc",
+            function_name='ItemsApiStack-GetSampleItemFunc',
             runtime=_lambda.Runtime.NODEJS_20_X,
             handler="index.handler",
             code=_lambda.Code.from_asset("../get-item-lambda/dist"), 
@@ -65,7 +67,10 @@ class ItemsApiStack(Stack):
         # API Gateway
         api = apigateway.RestApi(self, "SampleItemAPI")
 
+        # Configure Endpoints and Resource Access
         items_resource = api.root.add_resource("items")
-        items_resource.add_method("GET", apigateway.LambdaIntegration(get_function))
+        item_resource = items_resource.add_resource("{itemId}")
+        item_resource.add_method("GET", apigateway.LambdaIntegration(get_function))
+
         # items_resource.add_method("POST", apigateway.LambdaIntegration(insert_function))
         # items_resource.add_method("PUT", apigateway.LambdaIntegration(update_function))

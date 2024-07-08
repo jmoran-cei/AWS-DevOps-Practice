@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
+const tableName = process.env.TABLE_NAME;
 
 export const handler = async (event: any): Promise<any> => {
     try {
@@ -9,8 +10,8 @@ export const handler = async (event: any): Promise<any> => {
 
         // DynamoDB params
         const params: AWS.DynamoDB.DocumentClient.GetItemInput = {
-            TableName: 'SampleItems',
-            Key: { id: itemId },
+            TableName: tableName,
+            Key: { itemId: itemId },
         };
 
         // Retrieve item from DynamoDB
