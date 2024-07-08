@@ -1,0 +1,23 @@
+{
+  "name": "get-item",
+  "version": "1.0.0",
+  "description": "Sample Get Endpoint",
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "jest --coverage --verbose",
+    "build": "webpack",
+    "dev": "webpack --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.6.1",
+    "aws-sdk": "^2.1652.0",
+    "fork-ts-checker-webpack-plugin": "^8.0.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "author": "Jon Moran",
+  "license": "UNLICENSED"
+}
