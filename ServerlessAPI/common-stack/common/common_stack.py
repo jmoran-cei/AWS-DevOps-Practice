@@ -23,15 +23,22 @@ class ItemsApiStack(Stack):
             removal_policy=RemovalPolicy.RETAIN,  # Keep table data independently from stack
         )
 
-        # IAM Role for Lambda
-        lambda_role = iam.Role(
+        # IAM Roles for Lambdas
+        get_lambda_role = iam.Role(
             self, 
-            "LambdaExecutionRole",
+            "GetLambdaExecutionRole",
+            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com")
+        )
+        update_lambda_role = iam.Role(
+            self, 
+            "UpdateLambdaExecutionRole",
             assumed_by=iam.ServicePrincipal("lambda.amazonaws.com")
         )
 
-        # Granting permissions to Lambda Role
-        table.grant_read_data(lambda_role)
+        # Granting permissions to Lambda Roles
+        table.grant_read_data(get_lambda_role)
+        table.grant_read_data(update_lambda_role)
+        table.grant_write_data(update_lambda_role)
 
         # Lambdas
         get_function = _lambda.Function( 
@@ -42,35 +49,26 @@ class ItemsApiStack(Stack):
             handler="index.handler",
             code=_lambda.Code.from_asset("../get-item-lambda/dist"), 
             environment={"TABLE_NAME": table.table_name},
-            role=lambda_role,
+            role=get_lambda_role,
         )
-
-        # **** Starting with one lambda for simplicity, then will add the others. Also want to get practice re-initiating an update of a stack
-        # insert_function = _lambda.Function(
-        #     self,
-        #     "InsertSampleItemFunc",
-        #     runtime=_lambda.Runtime.NODEJS_20_X,
-        #     handler="index.handler",
-        #     code=_lambda.Code.from_asset("../insert-item/src"), 
-        #     environment={"TABLE_NAME": table.table_name},
-        # )
-
-        # update_function = _lambda.Function(
-        #     self,
-        #     "UpdateSampleItemFuncn",
-        #     runtime=_lambda.Runtime.NODEJS_20_X,
-        #     handler="index.handler",
-        #     code=_lambda.Code.from_asset("../update-item/src"),
-        #     environment={"TABLE_NAME": table.table_name},
-        # )
+        update_function = _lambda.Function( 
+            self,
+            "UpdateSampleItemFunc",
+            function_name='ItemsApiStack-UpdateSampleItemFunc',
+            runtime=_lambda.Runtime.NODEJS_20_X,
+            handler="index.handler",
+            code=_lambda.Code.from_asset("../update-item-lambda/dist"), 
+            environment={"TABLE_NAME": table.table_name},
+            role=update_lambda_role,
+        )
 
         # API Gateway
         api = apigateway.RestApi(self, "SampleItemAPI")
 
-        # Configure Endpoints and Resource Access
+        # -- Configure Endpoints and Resource Access --
         items_resource = api.root.add_resource("items")
-        item_resource = items_resource.add_resource("{itemId}")
+        item_resource = items_resource.add_resource("{itemId}") # Set itemId param
+        # GET item
         item_resource.add_method("GET", apigateway.LambdaIntegration(get_function))
-
-        # items_resource.add_method("POST", apigateway.LambdaIntegration(insert_function))
-        # items_resource.add_method("PUT", apigateway.LambdaIntegration(update_function))
+        # PUT item
+        items_resource.add_method("PUT", apigateway.LambdaIntegration(update_function))
