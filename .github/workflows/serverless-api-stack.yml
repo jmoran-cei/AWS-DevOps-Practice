@@ -1,9 +1,13 @@
-name: Deploy CDK Stack
+name: Deploy ServerlessAPI Common Stack
 
 on:
   push:
     branches:
-      - main
+      #- main
+      - ServerlessAPI-AdditionalEndpoints
+    paths:
+      - '.github/workflows/serverless-api-stack.yml'
+      - 'ServerlessAPI/common_stack/**'
   workflow_dispatch:
   
 
@@ -28,7 +32,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r ServerlessAPI/common-stack/requirements.txt
+        pip install -r ServerlessAPI/common_stack/requirements.txt
 
     - name: Setup Node.js environment
       uses: actions/setup-node@v2
@@ -38,22 +42,40 @@ jobs:
     - name: Install AWS CDK
       run: npm install -g aws-cdk
 
-    - name: Install Node.js dependencies and build ItemsApiStack-GetSampleItemFunc
+    - name: Install Node.js dependencies and build HealthCheckFunc
       run: |
         npm install
         npm run build
-      working-directory: ServerlessAPI/get-item-lambda
-    
-    - name: Install Node.js dependencies and build ItemsApiStack-UpdateSampleItemFunc
-      run: |
-        npm install
-        npm run build
-      working-directory: ServerlessAPI/update-item-lambda
+      working-directory: ServerlessAPI/common_stack/health_check_lambda
 
+    # - name: Install Node.js dependencies and build GetSampleItemFunc
+    #   run: |
+    #     npm install
+    #     npm run build
+    #   working-directory: ServerlessAPI/get_item_lambda
+    
+    # - name: Install Node.js dependencies and build InsertSampleItemFunc
+    #   run: |
+    #     npm install
+    #     npm run build
+    #   working-directory: ServerlessAPI/add_item_lambda
+    
+    # - name: Install Node.js dependencies and build UpdateSampleItemFunc
+    #   run: |
+    #     npm install
+    #     npm run build
+    #   working-directory: ServerlessAPI/update_item_lambda
+
+    # - name: Install Node.js dependencies and build DeleteSampleItemFunc
+    #   run: |
+    #     npm install
+    #     npm run build
+    #   working-directory: ServerlessAPI/delete_item_lambda
+      
     - name: Build CDK stack
-      run: cdk synth
-      working-directory: ServerlessAPI/common-stack
+      run: cdk synth -c env=prod
+      working-directory: ServerlessAPI/common_stack
 
     - name: Deploy CDK stack
-      run: cdk deploy --require-approval never
-      working-directory: ServerlessAPI/common-stack
+      run: cdk deploy --require-approval never -c env=prod
+      working-directory: ServerlessAPI/common_stack
