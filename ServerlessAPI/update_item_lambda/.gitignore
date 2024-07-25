@@ -1,0 +1,13 @@
+node_modules
+.webpackCache
+dist
+coverage/
+lib/
+package-lock.json
+
+# local run files
+src/run.js
+src/run.ts
+
+# sam build folder
+.aws-sam
