@@ -3,8 +3,7 @@ name: Deploy ServerlessAPI Common Stack
 on:
   push:
     branches:
-      #- main
-      - ServerlessAPI-AdditionalEndpoints
+      - main
     paths:
       - '.github/workflows/serverless-api-stack.yml'
       - 'ServerlessAPI/common_stack/**'
